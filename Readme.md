@@ -5,7 +5,7 @@ WebAssembly modules at runtime in order to achieve decent performance. Here's a
 list of emulated hardware:
 
 - An x86-compatible CPU. The instruction set is around Pentium 4 level,
-  including full SSE2 support. Some features are missing, in particular:
+  including full SSE3 support. Some features are missing, in particular:
   - Task gates, far calls in protected mode
   - Some 16 bit protected mode features
   - Single stepping (trap flag, debug registers)
@@ -25,8 +25,8 @@ list of emulated hardware:
 - A generic VGA card with SVGA support and Bochs VBE Extensions.
 - A PCI bus. This one is partly incomplete and not used by every device.
 - An IDE disk controller.
-- An NE2000 (8390) PCI network card.
-- A virtio filesystem.
+- An NE2000 (RTL8390) PCI network card.
+- A VirtIO filesystem.
 - A SoundBlaster 16 sound card.
 
 ## Demos
@@ -34,6 +34,7 @@ list of emulated hardware:
 [Arch Linux](https://copy.sh/v86/?profile=archlinux) —
 [Damn Small Linux](https://copy.sh/v86/?profile=dsl) —
 [Buildroot Linux](https://copy.sh/v86/?profile=buildroot) —
+[SkiffOS](https://copy.sh/v86/?profile=copy/skiffos) —
 [ReactOS](https://copy.sh/v86/?profile=reactos) —
 [Windows 2000](https://copy.sh/v86/?profile=windows2000) —
 [Windows 98](https://copy.sh/v86/?profile=windows98) —
@@ -67,7 +68,8 @@ list of emulated hardware:
 Here's an overview of the operating systems supported in v86:
 
 - Linux works pretty well. 64-bit kernels are not supported.
-  - Damn Small Linux (2.4 Kernel) works.
+  - Damn Small Linux (2.4.31 kernel) works.
+  - Fedora 30 works.
   - All tested versions of TinyCore work.
   - [Buildroot](https://buildroot.uclibc.org) can be used to build a minimal image.
     [humphd/browser-vm](https://github.com/humphd/browser-vm) and
@@ -81,11 +83,10 @@ Here's an overview of the operating systems supported in v86:
 - FreeDOS, Windows 1.01 and MS-DOS run very well.
 - KolibriOS works.
 - Haiku works.
-- Android x86 1.6-r2 works if one selects VESA mode at the boot prompt. Newer
-  versions may work if compiled without SSE3. See [#224](https://github.com/copy/v86/issues/224).
+- Android-x86 works up to 4.4-r2, if you select VESA mode at the boot prompt.
 - Windows 1, 3.x, 95, 98, ME, NT and 2000 work reasonably well.
   - In Windows 2000 and higher the PC type has to be changed from ACPI PC to Standard PC
-  - There are some known boot issues (#250, #433, #507, #555, #620, #645)
+  - There are some known boot issues ([#250](https://github.com/copy/v86/issues/250), [#433](https://github.com/copy/v86/issues/433), [#507](https://github.com/copy/v86/issues/507), [#555](https://github.com/copy/v86/issues/555), [#620](https://github.com/copy/v86/issues/620), [#645](https://github.com/copy/v86/issues/645))
 - Windows XP, Vista and 8 work under certain conditions (see [#86](https://github.com/copy/v86/issues/86), [#208](https://github.com/copy/v86/issues/208))
   - See [Windows 2000/XP guest setup](docs/windows-xp.md)
 - Many hobby operating systems work.
@@ -98,6 +99,7 @@ Here's an overview of the operating systems supported in v86:
   `boot -c`, then at the `UKC>` prompt `disable mpbios` and `exit`.
 - NetBSD works only with a custom kernel, see [#350](https://github.com/copy/v86/issues/350).
 - SerenityOS works.
+- [SkiftOS](https://skiftos.org/) works.
 
 You can get some infos on the disk images here: https://github.com/copy/images.
 
@@ -154,7 +156,7 @@ See [tests/Readme.md](tests/Readme.md) for more infos.
 Using v86 for your own purposes is as easy as:
 
 ```javascript
-var emulator = new V86Starter({
+var emulator = new V86({
     screen_container: document.getElementById("screen_container"),
     bios: {
         url: "../../bios/seabios.bin",

@@ -1,9 +1,5 @@
 "use strict";
 
-/** @const */
-var CPU_LOG_VERBOSE = false;
-
-
 // Resources:
 // https://pdos.csail.mit.edu/6.828/2006/readings/i386/toc.htm
 // https://www-ssl.intel.com/content/www/us/en/processors/architectures-software-developer-manuals.html
@@ -237,7 +233,7 @@ CPU.prototype.wasm_patch = function()
     this.pic_call_irq = get_import("pic_call_irq");
 
     this.do_many_cycles_native = get_import("do_many_cycles_native");
-    this.cycle_internal = get_import("cycle_internal");
+    this.do_many_cycles_native_nojit = get_import("do_many_cycles_native_nojit");
 
     this.read8 = get_import("read8");
     this.read16 = get_import("read16");
@@ -662,6 +658,11 @@ CPU.prototype.init = function(settings, device_bus)
     this.create_memory(typeof settings.memory_size === "number" ?
         settings.memory_size : 1024 * 1024 * 64);
 
+    if(settings.disable_jit)
+    {
+        this.do_many_cycles_native = this.do_many_cycles_native_nojit;
+    }
+
     settings.cpuid_level && this.set_cpuid_level(settings.cpuid_level);
 
     this.acpi_enabled[0] = +settings.acpi;
@@ -727,7 +728,7 @@ CPU.prototype.init = function(settings, device_bus)
 
         function i32(x)
         {
-            return new Uint8Array(new Int32Array([x]).buffer);
+            return new Uint8Array(Int32Array.of(x).buffer);
         }
 
         function to_be16(x)
@@ -1107,7 +1108,7 @@ CPU.prototype.load_multiboot = function(buffer)
 
 CPU.prototype.fill_cmos = function(rtc, settings)
 {
-    var boot_order = settings.boot_order || 0x213;
+    var boot_order = settings.boot_order || BOOT_ORDER_CD_FIRST;
 
     // Used by seabios to determine the boot order
     //   Nibble
@@ -1237,13 +1238,6 @@ CPU.prototype.do_many_cycles = function()
         this.do_many_cycles_total += v86.microtick() - start_time;
         this.do_many_cycles_count++;
     }
-};
-
-/** @export */
-CPU.prototype.cycle = function()
-{
-    // XXX: May do several cycles
-    this.cycle_internal();
 };
 
 CPU.prototype.codegen_finalize = function(wasm_table_index, start, state_flags, ptr, len)
